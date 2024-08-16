@@ -12,6 +12,12 @@
 5. 支持日志逐字节输出或用数组缓存后输出
 6. 错误等级日志可输出文件信息(文件名, 行号, 函数名).
 
+# 开源地址
+
+[github](https://github.com/x-eks-fusion/xf_log)
+
+[gitee](https://gitee.com/x-eks-fusion/xf_log)
+
 # 快速入门
 
 1. 安装 xmake.
