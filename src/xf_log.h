@@ -1,44 +1,12 @@
 /**
  * @file xf_log.h
- * @author catcatBlue (catcatblue@qq.com)
- * @brief xf_log 日志模块。
- * @version 1.0
- * @date
- * - 2023-07-26 初版。
- * - 2024-01-14 替换 printf 实现、加变量锁、增加日志输出后端、增加 VERBOSE 等级。
- *              由于通过日志输出后端可以实现异步输出，因此 log 不设总锁。
+ * @author cangyu (sky.kirto@qq.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-10-09
  *
- * Copyright (c) 2024, CorAL. All rights reserved.
+ * @copyright Copyright (c) 2024, CorAL. All rights reserved.
  *
- */
-
-/**
- * @defgroup group_xf_log xf_log
- * @brief xf_log 日志实现。
- *
- * 通常不直接使用 xf_log, 而是使用 xf_utils_log 内定义的宏.
- *
- */
-
-/**
- * @ingroup group_xf_log
- * @defgroup group_xf_log_user 用户接口
- * @brief 如 xf_log, xf_log_set_global_level, xf_log_get_ms 等。
- */
-
-/**
- * @ingroup group_xf_log
- * @defgroup group_xf_log_port 移植接口
- * @brief 注册日志输出后端或日志时间戳来源。
- *
- * 对接 xf_log 时只需 `#include "xf_log_port.h"` 即可。
- *
- */
-
-/**
- * @ingroup group_xf_log
- * @defgroup group_xf_log_internal 内部接口
- * @brief 用户最好不要直接使用。
  */
 
 #ifndef __XF_LOG_H__
@@ -46,8 +14,20 @@
 
 /* ==================== [Includes] ========================================== */
 
-#include "xf_log_config_internal.h"
-#include "xf_log_types.h"
+#include "xf_log_config_internel.h"
+
+#if XF_LOG_STDDEF_IS_ENABLE
+    #include <stddef.h>
+#else
+    typedef long unsigned int size_t;
+#endif
+
+#if XF_LOG_STDINT_IS_ENABLE
+    #include <stdint.h>
+#else
+    typedef unsigned int uint32_t;
+    typedef unsigned char uint8_t;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,141 +35,135 @@ extern "C" {
 
 /* ==================== [Defines] =========================================== */
 
+#define XF_LOG_LVL_NONE     (0)
+#define XF_LOG_LVL_USER     (1)
+#define XF_LOG_LVL_ERROR    (2)
+#define XF_LOG_LVL_WARN     (3)
+#define XF_LOG_LVL_INFO     (4)
+#define XF_LOG_LVL_DEBUG    (5)
+#define XF_LOG_LVL_VERBOSE  (6)
+
 /* ==================== [Typedefs] ========================================== */
+
+typedef void(*xf_log_out_t)(const char *str, size_t len, void *arg);
+typedef uint32_t (*xf_log_time_func_t)(void);
 
 /* ==================== [Global Prototypes] ================================= */
 
 /**
- * @ingroup group_xf_log_user
- * @{
- */
-
-/**
- * @brief 输出日志到后端。
+ * @brief 注册log后端是输出到哪里，其最大值受到 XF_LOG_OBJ_MAX 的限制
  *
- * @param level 日志等级，见 XF_LOG_LVL_*.
- * @param tag 日志标签。
- * @param file 文件名，从 __FILE__ 中获得。
- * @param line 行号。
- * @param func 函数名。
- * @param fmt 格式化字符串，用户输入。
- * @param ... 可变参数。
- * @return size_t 本次日志字节数。
+ * @param out_func 后端输出函数， 如果减少IO操作，可以考虑使用异步缓冲
+ * @param user_args 传入的参数，会在 out_func 中被调用
+ * @return int  -1:失败, >=0:注册成功后返回的id
+ */
+int xf_log_register_obj(xf_log_out_t out_func, void *user_args);
+
+#if XF_LOG_FILTER_IS_ENABLE
+
+/**
+ * @brief 启用过滤器
  *
- * @note 不要直接使用这个函数，请使用 `xf_utils_log.h` 内的 XF_LOG* 宏。
- *       如 @ref XF_LOGI.
- * @note 暂未启用格式化检查(`__format_attribute(6, 7)`)。
+ * @param log_obj_id 指定log对象id
  */
-size_t xf_log(
-    uint8_t level, const char *tag,
-    const char *file, uint32_t line, const char *func,
-    const char *fmt, ...);
+void xf_log_set_filter_enable(int log_obj_id);
 
 /**
- * @brief 设置全局日志等级，如果日志等级低于该等级则不会输出。
+ * @brief 禁用过滤器
  *
- * @param level 日志等级。
- * @return xf_log_err_t
- *      - XF_LOG_OK                     成功
- *      - XF_LOG_ERR_INVALID_ARG        无效参数
+ * @param log_obj_id 指定log对象id
  */
-xf_log_err_t xf_log_set_global_level(int level);
+void xf_log_set_filter_disable(int log_obj_id);
 
 /**
- * @brief 获取全局日志等级。
+ * @brief 开启彩色显示
  *
- * @return int 全局日志等级。
+ * @param log_obj_id 指定log对象id
  */
-int xf_log_get_global_level(void);
+void xf_log_set_filter_colorful_enable(int log_obj_id);
 
 /**
- * @brief 获取日志时间。
+ * @brief 关闭彩色显示
  *
- * @return uint32_t ms 级时间戳。
+ * @param log_obj_id 指定log对象id
  */
-uint32_t xf_log_get_ms(void);
+void xf_log_set_filter_colorful_disable(int log_obj_id);
 
 /**
- * @brief 获取时间字符串。
+ * @brief 设置过滤器为黑名单（其内容将被过滤）
  *
- * @param[out] p_buf 指向存储字符串的缓冲区。
- * @param buf_size 缓冲区最大大小。用于截断。
- * @return xf_log_err_t
- *      - XF_LOG_OK         成功
+ * @param log_obj_id 指定log对象id
  */
-xf_log_err_t xf_log_get_timestamp(char *p_buf, uint16_t buf_size);
+void xf_log_set_filter_is_blacklist(int log_obj_id);
 
 /**
- * End of group_xf_log_user
- * @}
- */
-
-/**
- * @ingroup group_xf_log_internal
- * @{
- */
-
-/**
- * @brief 日志格式化输出实现。
+ * @brief 设置过滤器为白名单（仅其内容将被暴露）
  *
- * @param p_cb mpaland_printf 内 fctprintf 的回调函数。
- * @param p_info 日志等级、行号、文件名等信息。
- * @param p_details 用户格式化字符串及参数细节。
- * @return size_t 本次日志字节数。
- *
- * @attention 如无必要 **请勿** 使用该函数。
- * @note 具体用法参见 `xf_log.c`.
+ * @param log_obj_id 指定log对象id
  */
-size_t xf_log_vfunc(
-    xf_log_cb_t *p_cb, xf_log_info_t *p_info, xf_log_details_t *p_details);
+void xf_log_set_filter_is_whitelist(int log_obj_id);
 
 /**
- * End of group_xf_log_internal
- * @}
+ * @brief 设置过滤器的标签过滤
+ *
+ * @param log_obj_id 指定log对象id
+ * @param tag 指定过滤的标签，如果为NULL则表示不过滤
  */
+void xf_log_set_filter_tag(int log_obj_id, const char *tag);
+
+/**
+ * @brief 设置过滤器的等级过滤
+ *
+ * @param log_obj_id 指定log对象id
+ * @param level 指定过滤的等级，小于等于level将不会被过滤
+ */
+void xf_log_set_filter_level(int log_obj_id, uint8_t level);
+
+/**
+ * @brief 设置过滤器的文件过滤
+ *
+ * @param log_obj_id 指定log对象id
+ * @param file 指定过滤的文件，如果为NULL则表示不过滤
+ */
+void xf_log_set_filter_file(int log_obj_id, const char *file);
+
+#endif
+
+/**
+ * @brief 显示文件函数等信息的最小等级
+ *
+ * @param log_obj_id 指定log对象id
+ * @param level 指定显示文件函数等信息的最小等级，小于等于level将不会被过滤
+ */
+void xf_log_set_info_level(int log_obj_id, uint8_t level);
+
+/**
+ * @brief 设置log的时间戳打印函数
+ *
+ * @param log_time_func log的时间戳打印函数
+ */
+void xf_log_set_time_func(xf_log_time_func_t log_time_func);
+
+/**
+ * @brief log打印函数
+ *
+ * @param level log打印等级
+ * @param tag 打印标签
+ * @param file 当前文件
+ * @param line 当前行数
+ * @param func 当前函数
+ * @param fmt 格式化日志
+ * @param ...
+ * @return size_t 格式化输出的长度
+ */
+size_t xf_log(uint8_t level, const char *tag, const char *file, uint32_t line, const char *func, const char *fmt, ...);
 
 /* ==================== [Macros] ============================================ */
 
-/**
- * @ingroup group_xf_log_user
- * @{
- */
-
-/**
- * @brief 输出日志宏（错误等级以上带有文件名行号等信息）。
- *
- * @param level 日志等级，见 XF_LOG_LVL_*.
- * @param tag 日志标签。
- * @param fmt 格式化字符串，用户输入。
- * @param ... 可变参数。
- * @return size_t 本次日志字节数。
- */
-#define XF_LOG_WITH_EXTRA(level, tag, fmt, ...) \
-    xf_log((level), (tag), \
-        (XF_LOG_FILE_NAME), (__LINE__), (XF_LOG_FUNCTION_NAME), \
-        (fmt), ##__VA_ARGS__)
-
-/**
- * @brief 输出日志宏（不带有文件名行号等信息）。
- *
- * @param level 日志等级，见 XF_LOG_LVL_*.
- * @param tag 日志标签。
- * @param fmt 格式化字符串，用户输入。
- * @param ... 可变参数。
- * @return size_t 本次日志字节数。
- */
-#define XF_LOG_WITHOUT_EXTRA(level, tag, fmt, ...) \
-    xf_log((level), (tag), \
-        (NULL), (0), (NULL), \
-        (fmt), ##__VA_ARGS__)
-
-/**
- * End of group_xf_log_user
- * @}
- */
+#define xf_log_level(level, tag, fmt, ...)  xf_log(level, tag, __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
 
 #ifdef __cplusplus
-} /*extern "C"*/
+} /* extern "C" */
 #endif
 
-#endif /* __XF_LOG_H__ */
+#endif // __XF_LOG_H__
