@@ -158,6 +158,15 @@ void xf_log_set_time_func(xf_log_time_func_t log_time_func);
  */
 size_t xf_log(uint8_t level, const char *tag, const char *file, uint32_t line, const char *func, const char *fmt, ...);
 
+/**
+ * @brief 朴实无华的打印函数
+ * 
+ * @param format 需要格式化打印的字符串
+ * @param ... 需要格式化的参数 
+ * @return size_t 格式化打印的长度
+ */
+size_t xf_log_printf(const char *format, ...);
+
 /* ==================== [Macros] ============================================ */
 
 #define xf_log_level(level, tag, fmt, ...)  xf_log(level, tag, __FILE__, __LINE__, __func__, fmt"\n", ##__VA_ARGS__)

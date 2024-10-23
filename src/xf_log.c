@@ -82,6 +82,7 @@ typedef struct _xf_log_obj_t {
 
 /* ==================== [Static Prototypes] ================================= */
 
+static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format, va_list va);
 static size_t xf_log_color_format(int log_obj_id, uint8_t level, const char *tag, const char *file, uint32_t line,
                                   const char *func, const char *fmt, va_list va);
 
@@ -97,6 +98,7 @@ static const char s_lvl_to_prompt[] = {
     'V',
 };
 
+#if XF_LOG_COLORS_IS_ENABLE
 static const uint8_t s_lvl_to_color[] = {
     XF_LOG_COLOR_NULL,
     XF_LOG_COLOR_BLUE,
@@ -106,6 +108,7 @@ static const uint8_t s_lvl_to_color[] = {
     XF_LOG_COLOR_CYAN,
     XF_LOG_COLOR_NULL,
 };
+#endif
 
 static xf_log_obj_t s_log_obj[XF_LOG_OBJ_NUM] = {0};
 
@@ -204,7 +207,7 @@ size_t xf_log(uint8_t level, const char *tag, const char *file, uint32_t line, c
 {
     size_t len = 0;
     // 根据不同的订阅进行不同的输出
-    va_list args, va;
+    va_list args;
     va_start(args, fmt);
     for (size_t i = 0; i < XF_LOG_OBJ_NUM; i++) {
         if (s_log_obj[i].out_func == NULL) {
@@ -234,9 +237,23 @@ size_t xf_log(uint8_t level, const char *tag, const char *file, uint32_t line, c
             }
         }
 #endif
-        va_copy(va, args);
-        len += xf_log_color_format(i, level, tag, file, line, func, fmt, va);
-        va_end(va);
+        len = xf_log_color_format(i, level, tag, file, line, func, fmt, args);
+    }
+    va_end(args);
+
+    return len;
+}
+
+size_t xf_log_printf(const char *format, ...)
+{
+    size_t len = 0;
+    va_list args;
+    va_start(args, format);
+    for (size_t i = 0; i < XF_LOG_OBJ_NUM; i++) {
+        if (s_log_obj[i].out_func == NULL) {
+            continue;
+        }
+        len = xf_log_vprintf(s_log_obj[i].out_func, s_log_obj[i].user_args, format, args);
     }
     va_end(args);
 
@@ -245,12 +262,21 @@ size_t xf_log(uint8_t level, const char *tag, const char *file, uint32_t line, c
 
 /* ==================== [Static Functions] ================================== */
 
+static void find_args_from_index(va_list *va, size_t index)
+{
+    for (int i = 0; i < index; i++) {
+        va_arg(*va, void *);
+    }
+}
+
 static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format, va_list va)
 {
     const char *p = format;
     char format_flag[MIN_FORMAT_FLAG_SIZE];         // 用于格式化部分的缓冲区
     char format_buffer[MIN_FORMAT_BUFFER_SIZE];      // 用于格式化结果的缓冲区
     size_t total_length = 0;
+    size_t index = 0, used_index = 0;
+    va_list args_copy;
 
     while (*p != '\0') {
         // 普通字符处理，直接输出到串口
@@ -266,6 +292,7 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             char *format_start = format_flag;  // 记录 % 开始的地方
             *format_start = '%';
             format_start++;
+            used_index = 0;
 
             // 优化一些特殊情况
             if (*p == '%') {
@@ -275,7 +302,11 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
                 continue;
             } else if (*p == 's') {
                 p++;
-                const char *start = va_arg(va, const char *);
+                va_copy(args_copy, va);
+                find_args_from_index(&args_copy, index);
+                const char *start = va_arg(args_copy, const char *);
+                index++;
+                va_end(args_copy);
                 total_length += xf_log_strlen(start);
                 log_out(start, xf_log_strlen(start), arg);
                 continue;
@@ -297,19 +328,34 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
                 break;
             }
             // 收录宽度信息
-            while (*p == '*' && isdigit(*p)) {
+            if (*p == '*') {
+                used_index++;
                 if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
+            } else {
+                while (isdigit(*p)) {
+                    if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                        *format_start++ = *p++;
+                    }
+                }
             }
+
             // 收录位置信息
             if (*p == '.') {
                 if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
-                while (*p == '*' || isdigit(*p)) {
+                if (*p == '*') {
+                    used_index++;
                     if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
                         *format_start++ = *p++;
+                    }
+                } else {
+                    while (isdigit(*p)) {
+                        if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                            *format_start++ = *p++;
+                        }
                     }
                 }
             }
@@ -359,6 +405,7 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             case 't':
             case 'u':
             case 'x':
+                used_index++;
                 if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
@@ -369,12 +416,12 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             }
 
             *format_start = '\0';  // 结束符
-
-            // 格式化字符串并输出
-            va_list args_copy, args_format;
+            // 格式化字符串并输出;
             va_copy(args_copy, va);
+            find_args_from_index(&args_copy, index);
             // 获取完整格式化的长度
-            int formatted_len = xf_log_vsprintf(format_buffer, MIN_FORMAT_BUFFER_SIZE, format_flag, va);
+            int formatted_len = xf_log_vsprintf(format_buffer, MIN_FORMAT_BUFFER_SIZE, format_flag, args_copy);
+            va_end(args_copy);
             if (formatted_len < MIN_FORMAT_BUFFER_SIZE) {
                 log_out(format_buffer, formatted_len, arg);
                 total_length += formatted_len;
@@ -383,22 +430,23 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
                 while (total_written < formatted_len) {
                     int remaining = formatted_len - total_written;
                     int chunk_size = remaining < MIN_FORMAT_BUFFER_SIZE ? remaining : MIN_FORMAT_BUFFER_SIZE - 1;
-                    va_copy(args_format, args_copy);
-                    xf_log_vsprintf(format_buffer, chunk_size + 1, format_flag, args_format);  // 输出分块格式化内容
-                    va_end(args_format);
+                    va_copy(args_copy, va);
+                    find_args_from_index(&args_copy, index);
+                    xf_log_vsprintf(format_buffer, chunk_size + 1, format_flag, args_copy);  // 输出分块格式化内容
+                    va_end(args_copy);
                     log_out(format_buffer, chunk_size, arg);
                     total_written += chunk_size;
                 }
                 total_length += total_written;
             }
-            va_end(args_copy);
+            index += used_index;
         }
     }
 
     return total_length;
 }
 
-static size_t xf_log_printf(xf_log_out_t log_out, void *arg, const char *format, ...)
+static size_t xf_log_printf_out(xf_log_out_t log_out, void *arg, const char *format, ...)
 {
     va_list va;
     va_start(va, format);
@@ -422,7 +470,7 @@ static size_t xf_log_color_format(int log_obj_id, uint8_t level, const char *tag
 #endif
         if (s_lvl_to_color[level] != XF_LOG_COLOR_NULL) {
             /* \033[0;3%cm: 重置样式并设置前景色 */
-            len += xf_log_printf(out_func, user_args, PL_CSI_START "0;3" "%cm", s_lvl_to_color[level]);
+            len += xf_log_printf_out(out_func, user_args, PL_CSI_START "0;3" "%cm", s_lvl_to_color[level]);
         }
 #if XF_LOG_FILTER_IS_ENABLE
     }
@@ -431,18 +479,18 @@ static size_t xf_log_color_format(int log_obj_id, uint8_t level, const char *tag
 
     // 添加时间戳打印
     if (s_log_time_func) {
-        len += xf_log_printf(out_func, user_args, "%c (%lu)-%s", s_lvl_to_prompt[level], s_log_time_func(), tag);
+        len += xf_log_printf_out(out_func, user_args, "%c (%lu)-%s", s_lvl_to_prompt[level], s_log_time_func(), tag);
     } else {
-        len += xf_log_printf(out_func, user_args, "%c %s", s_lvl_to_prompt[level], tag);
+        len += xf_log_printf_out(out_func, user_args, "%c %s", s_lvl_to_prompt[level], tag);
     }
 
     // 打印信息
     if (level <= s_log_obj[log_obj_id].info_level) {
-        len += xf_log_printf(out_func, user_args, "[%s:%lu(%s)]", file, line, func);
+        len += xf_log_printf_out(out_func, user_args, "[%s:%lu(%s)]", file, line, func);
     }
 
     // 用户日志打印
-    len += xf_log_printf(out_func, user_args, ": ");
+    len += xf_log_printf_out(out_func, user_args, ": ");
     len += xf_log_vprintf(out_func, user_args, fmt, va);
 
 #if XF_LOG_COLORS_IS_ENABLE
@@ -452,7 +500,7 @@ static size_t xf_log_color_format(int log_obj_id, uint8_t level, const char *tag
 #endif
         /* 清除 CSI 格式 */
         if (s_lvl_to_color[level] != XF_LOG_COLOR_NULL) {
-            len += xf_log_printf(out_func, user_args, PL_CSI_END);
+            len += xf_log_printf_out(out_func, user_args, PL_CSI_END);
         }
 #if XF_LOG_FILTER_IS_ENABLE
     }
