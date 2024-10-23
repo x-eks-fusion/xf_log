@@ -160,7 +160,7 @@ size_t xf_log(uint8_t level, const char *tag, const char *file, uint32_t line, c
 
 /* ==================== [Macros] ============================================ */
 
-#define xf_log_level(level, tag, fmt, ...)  xf_log(level, tag, __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define xf_log_level(level, tag, fmt, ...)  xf_log(level, tag, __FILE__, __LINE__, __func__, fmt"\n", ##__VA_ARGS__)
 
 #ifdef __cplusplus
 } /* extern "C" */
