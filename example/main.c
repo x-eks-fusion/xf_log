@@ -36,7 +36,7 @@ int main(void)
     int log_uart_id = 0;
     int log_file_id = 0;
 
-    xf_log_set_time_func(get_current_time_ms);
+    xf_log_set_time_func(get_current_time_ms); // 设置时间戳打印函数(可选)
 
     log_uart_id = xf_log_register_obj(uart_write, NULL);
     xf_log_set_info_level(log_uart_id, XF_LOG_LVL_ERROR);
@@ -55,19 +55,21 @@ int main(void)
     xf_log(XF_LOG_LVL_DEBUG, TAG, __FILE__, __LINE__, __func__, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
     xf_log(XF_LOG_LVL_VERBOSE, TAG, "file3.c", __LINE__, __func__, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
 
-    xf_log_level(XF_LOG_LVL_USER, TAG, "Hello, %.5s, date: %d, pi: %f!\n", name, date, pi);
-    xf_log_level(XF_LOG_LVL_ERROR, TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    xf_log_level(XF_LOG_LVL_WARN, TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    xf_log_level(XF_LOG_LVL_INFO, TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    xf_log_level(XF_LOG_LVL_DEBUG, TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    xf_log_level(XF_LOG_LVL_VERBOSE, TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
+    xf_log_level(XF_LOG_LVL_USER, TAG, "Hello, %.5s, date: %d, pi: %f!", name, date, pi);
+    xf_log_level(XF_LOG_LVL_ERROR, TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    xf_log_level(XF_LOG_LVL_WARN, TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    xf_log_level(XF_LOG_LVL_INFO, TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    xf_log_level(XF_LOG_LVL_DEBUG, TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    xf_log_level(XF_LOG_LVL_VERBOSE, TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
 
-    XF_LOGU(TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    XF_LOGE(TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    XF_LOGW(TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    XF_LOGI(TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    XF_LOGD(TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
-    XF_LOGV(TAG, "Hello, %s, date: %d, pi: %f!\n", name, date, pi);
+    XF_LOGU(TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    XF_LOGE(TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    XF_LOGW(TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    XF_LOGI(TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    XF_LOGD(TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+    XF_LOGV(TAG, "Hello, %s, date: %d, pi: %f!", name, date, pi);
+
+    xf_log_printf("Hello, %s, date: %d, pi: %f!\n", name, date, pi);
 
     return 0;
 }

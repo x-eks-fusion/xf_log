@@ -21,9 +21,6 @@ extern "C" {
 /* ==================== [Defines] =========================================== */
 
 #define XF_LOG_OBJ_NUM           (2)
-#define XF_LOG_CTYPE_ENABLE      (0)
-#define XF_LOG_STDDEF_ENABLE     (0)
-#define XF_LOG_STDINT_ENABLE     (0)
 
 /* ==================== [Typedefs] ========================================== */
 
