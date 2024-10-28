@@ -84,6 +84,10 @@ extern "C" {
 #define XF_LOG_OBJ_NUM (1)
 #endif
 
+#ifndef XF_LOG_NEWLINE
+#define XF_LOG_NEWLINE "\n"
+#endif
+
 /* ==================== [Typedefs] ========================================== */
 
 /* ==================== [Global Prototypes] ================================= */

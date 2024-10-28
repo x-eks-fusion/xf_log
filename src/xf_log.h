@@ -169,7 +169,7 @@ size_t xf_log_printf(const char *format, ...);
 
 /* ==================== [Macros] ============================================ */
 
-#define xf_log_level(level, tag, fmt, ...)  xf_log(level, tag, __FILE__, __LINE__, __func__, fmt"\n", ##__VA_ARGS__)
+#define xf_log_level(level, tag, fmt, ...)  xf_log(level, tag, __FILE__, __LINE__, __func__, fmt XF_LOG_NEWLINE, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 } /* extern "C" */
