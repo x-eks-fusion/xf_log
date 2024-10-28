@@ -84,8 +84,19 @@ extern "C" {
 #define XF_LOG_OBJ_NUM (1)
 #endif
 
+// xf_log_level结束的换行符
 #ifndef XF_LOG_NEWLINE
 #define XF_LOG_NEWLINE "\n"
+#endif
+
+// 格式化标志长度
+#ifndef XF_FORMAT_FLAG_SIZE
+#define XF_FORMAT_FLAG_SIZE 8
+#endif
+
+// 格式化结果缓冲区
+#ifndef XF_FORMAT_BUFFER_SIZE
+#define XF_FORMAT_BUFFER_SIZE 32
 #endif
 
 /* ==================== [Typedefs] ========================================== */

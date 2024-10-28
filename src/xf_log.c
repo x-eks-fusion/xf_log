@@ -19,9 +19,6 @@
 #define PL_CSI_START                "\033["
 #define PL_CSI_END                  "\033[0m"
 
-#define MIN_FORMAT_FLAG_SIZE 8
-#define MIN_FORMAT_BUFFER_SIZE 32
-
 #if XF_LOG_CTYPE_IS_ENABLE
     #include <ctype.h>
 #else
@@ -272,8 +269,8 @@ static void find_args_from_index(va_list *va, size_t index)
 static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format, va_list va)
 {
     const char *p = format;
-    char format_flag[MIN_FORMAT_FLAG_SIZE];         // 用于格式化部分的缓冲区
-    char format_buffer[MIN_FORMAT_BUFFER_SIZE];      // 用于格式化结果的缓冲区
+    char format_flag[XF_FORMAT_FLAG_SIZE];         // 用于格式化部分的缓冲区
+    char format_buffer[XF_FORMAT_BUFFER_SIZE];      // 用于格式化结果的缓冲区
     size_t total_length = 0;
     size_t index = 0, used_index = 0;
     va_list args_copy;
@@ -319,7 +316,7 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             case ' ':
             case '#':
             case '0':
-                if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
                 break;
@@ -330,12 +327,12 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             // 收录宽度信息
             if (*p == '*') {
                 used_index++;
-                if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
             } else {
                 while (isdigit(*p)) {
-                    if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                    if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                         *format_start++ = *p++;
                     }
                 }
@@ -343,17 +340,17 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
 
             // 收录位置信息
             if (*p == '.') {
-                if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
                 if (*p == '*') {
                     used_index++;
-                    if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                    if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                         *format_start++ = *p++;
                     }
                 } else {
                     while (isdigit(*p)) {
-                        if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                        if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                             *format_start++ = *p++;
                         }
                     }
@@ -366,13 +363,13 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             case 'j':
             case 'z':
             case 't': {
-                if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
                 switch (*p) {
                 case 'h':
                 case 'l':
-                    if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                    if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                         *format_start++ = *p++;
                     }
                     break;
@@ -406,7 +403,7 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             case 'u':
             case 'x':
                 used_index++;
-                if ((format_start - format_flag) < MIN_FORMAT_FLAG_SIZE - 1) {
+                if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                     *format_start++ = *p++;
                 }
                 break;
@@ -420,16 +417,16 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
             va_copy(args_copy, va);
             find_args_from_index(&args_copy, index);
             // 获取完整格式化的长度
-            int formatted_len = xf_log_vsprintf(format_buffer, MIN_FORMAT_BUFFER_SIZE, format_flag, args_copy);
+            int formatted_len = xf_log_vsprintf(format_buffer, XF_FORMAT_BUFFER_SIZE, format_flag, args_copy);
             va_end(args_copy);
-            if (formatted_len < MIN_FORMAT_BUFFER_SIZE) {
+            if (formatted_len < XF_FORMAT_BUFFER_SIZE) {
                 log_out(format_buffer, formatted_len, arg);
                 total_length += formatted_len;
             } else {
                 int total_written = 0;
                 while (total_written < formatted_len) {
                     int remaining = formatted_len - total_written;
-                    int chunk_size = remaining < MIN_FORMAT_BUFFER_SIZE ? remaining : MIN_FORMAT_BUFFER_SIZE - 1;
+                    int chunk_size = remaining < XF_FORMAT_BUFFER_SIZE ? remaining : XF_FORMAT_BUFFER_SIZE - 1;
                     va_copy(args_copy, va);
                     find_args_from_index(&args_copy, index);
                     xf_log_vsprintf(format_buffer, chunk_size + 1, format_flag, args_copy);  // 输出分块格式化内容
