@@ -331,7 +331,7 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
                     *format_start++ = *p++;
                 }
             } else {
-                while (isdigit(*p)) {
+                while (isdigit((int)(*p))) {
                     if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                         *format_start++ = *p++;
                     }
@@ -349,7 +349,7 @@ static size_t xf_log_vprintf(xf_log_out_t log_out, void *arg, const char *format
                         *format_start++ = *p++;
                     }
                 } else {
-                    while (isdigit(*p)) {
+                    while (isdigit((int)(*p))) {
                         if ((format_start - format_flag) < XF_FORMAT_FLAG_SIZE - 1) {
                             *format_start++ = *p++;
                         }
