@@ -17,16 +17,16 @@
 #include "xf_log_config_internel.h"
 
 #if XF_LOG_STDDEF_IS_ENABLE
-    #include <stddef.h>
+#include <stddef.h>
 #else
-    typedef long unsigned int size_t;
+typedef long unsigned int size_t;
 #endif
 
 #if XF_LOG_STDINT_IS_ENABLE
-    #include <stdint.h>
+#include <stdint.h>
 #else
-    typedef unsigned int uint32_t;
-    typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+typedef unsigned char uint8_t;
 #endif
 
 #ifdef __cplusplus
@@ -45,7 +45,7 @@ extern "C" {
 
 /* ==================== [Typedefs] ========================================== */
 
-typedef void(*xf_log_out_t)(const char *str, size_t len, void *arg);
+typedef void (*xf_log_out_t)(const char *str, size_t len, void *arg);
 typedef uint32_t (*xf_log_time_func_t)(void);
 
 /* ==================== [Global Prototypes] ================================= */
@@ -160,9 +160,9 @@ size_t xf_log(uint8_t level, const char *tag, const char *file, uint32_t line, c
 
 /**
  * @brief 朴实无华的打印函数
- * 
+ *
  * @param format 需要格式化打印的字符串
- * @param ... 需要格式化的参数 
+ * @param ... 需要格式化的参数
  * @return size_t 格式化打印的长度
  */
 size_t xf_log_printf(const char *format, ...);

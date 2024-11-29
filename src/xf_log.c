@@ -20,19 +20,19 @@
 #define PL_CSI_END                  "\033[0m"
 
 #if XF_LOG_CTYPE_IS_ENABLE
-    #include <ctype.h>
+#include <ctype.h>
 #else
-    #define isdigit(c) ((c) >= '0' && (c) <= '9')
+#define isdigit(c) ((c) >= '0' && (c) <= '9')
 #endif
 
 #if XF_LOG_STRLEN_IS_ENABLE
-    #include <string.h>
-    #define xf_log_strlen(s) strlen(s)
+#include <string.h>
+#define xf_log_strlen(s) strlen(s)
 #endif
 
 #if XF_LOG_VSNPRINTF_IS_ENABLE
-    #include <stdio.h>
-    #define xf_log_vsprintf(buffer, maxlen, fmt, args) vsnprintf(buffer, maxlen, fmt, args)
+#include <stdio.h>
+#define xf_log_vsprintf(buffer, maxlen, fmt, args) vsnprintf(buffer, maxlen, fmt, args)
 #endif
 
 /* ==================== [Typedefs] ========================================== */
@@ -505,4 +505,3 @@ static size_t xf_log_color_format(int log_obj_id, uint8_t level, const char *tag
 #endif
     return len;
 }
-

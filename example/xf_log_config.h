@@ -1,12 +1,12 @@
 /**
  * @file xf_log_config.h
  * @author cangyu (sky.kirto@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-10-10
- * 
+ *
  * @copyright Copyright (c) 2024, CorAL. All rights reserved.
- * 
+ *
  */
 
 #ifndef __XF_LOG_CONFIG_H__
