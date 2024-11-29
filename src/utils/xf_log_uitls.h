@@ -1,12 +1,12 @@
 /**
  * @file xf_log_uitls.h
  * @author cangyu (sky.kirto@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-10-14
- * 
+ *
  * @copyright Copyright (c) 2024, CorAL. All rights reserved.
- * 
+ *
  */
 
 #ifndef __XF_LOG_UITLS_H__
@@ -57,7 +57,6 @@ extern "C" {
 #else
 #   define XF_LOGV(tag, format, ...)  (void)(tag)
 #endif
-
 
 /* ==================== [Typedefs] ========================================== */
 
