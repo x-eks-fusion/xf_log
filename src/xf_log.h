@@ -1,12 +1,30 @@
 /**
  * @file xf_log.h
  * @author cangyu (sky.kirto@qq.com)
- * @brief
+ * @brief xf_log 系统日志。
  * @version 0.1
  * @date 2024-10-09
  *
  * @copyright Copyright (c) 2024, CorAL. All rights reserved.
  *
+ */
+
+/**
+ * @cond (XFAPI_USER || XFAPI_PORT || XFAPI_INTERNAL)
+ * @defgroup group_xf_log xf_log
+ * @brief xf_log 系统日志。
+ * @endcond
+ */
+
+/**
+ * @cond XFAPI_PORT
+ * @ingroup group_xf_log
+ * @defgroup group_xf_log_port porting
+ * @brief 注册堆内存管理实现操作集，以及注册内存区域。
+ *
+ * 对接 xf_log 时只需 `#include "xf_log_port.h"` 即可。
+ *
+ * @endcond
  */
 
 #ifndef __XF_LOG_H__
@@ -35,6 +53,13 @@ extern "C" {
 
 /* ==================== [Defines] =========================================== */
 
+/**
+ * @cond XFAPI_USER
+ * @addtogroup group_xf_log
+ * @endcond
+ * @{
+ */
+
 #define XF_LOG_LVL_NONE     (0)
 #define XF_LOG_LVL_USER     (1)
 #define XF_LOG_LVL_ERROR    (2)
@@ -43,9 +68,34 @@ extern "C" {
 #define XF_LOG_LVL_DEBUG    (5)
 #define XF_LOG_LVL_VERBOSE  (6)
 
+/**
+ * End of addtogroup group_xf_log
+ * @}
+ */
+
 /* ==================== [Typedefs] ========================================== */
 
+/**
+ * @cond XFAPI_PORT
+ * @addtogroup group_xf_log_port
+ * @endcond
+ * @{
+ */
+
+/**
+ * @brief log 输出后端原型。
+ *
+ * @param str 交由后端输出的字符串。
+ * @param len 字符串的长度。
+ * @param arg 用户参数，见 @ref xf_log_register_obj.
+ */
 typedef void (*xf_log_out_t)(const char *str, size_t len, void *arg);
+
+/**
+ * @brief log 时间戳原型。
+ *
+ * @return 提供给 log 用的时间戳。
+ */
 typedef uint32_t (*xf_log_time_func_t)(void);
 
 /* ==================== [Global Prototypes] ================================= */
@@ -58,6 +108,18 @@ typedef uint32_t (*xf_log_time_func_t)(void);
  * @return int  -1:失败, >=0:注册成功后返回的id
  */
 int xf_log_register_obj(xf_log_out_t out_func, void *user_args);
+
+/**
+ * End of addtogroup group_xf_log_port
+ * @}
+ */
+
+/**
+ * @cond XFAPI_USER
+ * @addtogroup group_xf_log
+ * @endcond
+ * @{
+ */
 
 #if XF_LOG_FILTER_IS_ENABLE
 
@@ -170,6 +232,11 @@ size_t xf_log_printf(const char *format, ...);
 /* ==================== [Macros] ============================================ */
 
 #define xf_log_level(level, tag, fmt, ...)  xf_log(level, tag, __FILE__, __LINE__, __func__, fmt XF_LOG_NEWLINE, ##__VA_ARGS__)
+
+/**
+ * End of addtogroup group_xf_log
+ * @}
+ */
 
 #ifdef __cplusplus
 } /* extern "C" */
