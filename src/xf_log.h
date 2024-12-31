@@ -195,7 +195,7 @@ void xf_log_set_filter_file(int log_obj_id, const char *file);
  * @brief 显示文件函数等信息的最小等级
  *
  * @param log_obj_id 指定log对象id
- * @param level 指定显示文件函数等信息的最小等级，小于等于level将不会被过滤
+ * @param level 指定显示文件、函数等信息的最小等级，小于等于level将不会被过滤
  */
 void xf_log_set_info_level(int log_obj_id, uint8_t level);
 
