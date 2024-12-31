@@ -10,7 +10,7 @@
 5. 优化字符串格式化，尽量低的缓存和低的IO操作
 6. 可以自行配置 xf_log_config.h 减少仓库的占用
 7. 支持宏级别的等级屏蔽
-8. 自定义输出文件信息(文件名, 行号, 函数名)的level
+8. 自定义输出文件信息(文件名, 行号, 函数名)的 level
 
 # 开源地址
 
@@ -27,8 +27,7 @@
 2. 运行 linux 示例.
 
     ```bash
-    cd examples/
-    xmake b xf_log; 
+    xmake b xf_log
     xmake r xf_log
     ```
 
@@ -45,8 +44,8 @@
     "src/utils"
     ```
 
-2. 请定义xf_log_config.h用于配置内容, 详情参考**src/xf_log_config_internel.h**
-3. 对接后端
+2. 请定义 xf_log_config.h 用于配置内容, 详情参考**src/xf_log_config_internel.h**
+3. 对接后端（一个或多个）
 
     ```c
     int log_uart_id = xf_log_register_obj(uart_write, NULL);        // 对接串口打印
