@@ -22,37 +22,37 @@ extern "C" {
 
 /* ==================== [Defines] =========================================== */
 
-#if XF_LOG_LEVEL >= XF_LOG_USER
+#if XF_LOG_LEVEL >= XF_LOG_LVL_USER
 #   define XF_LOGU(tag, format, ...)  xf_log_level(XF_LOG_LVL_USER, tag, format, ##__VA_ARGS__)
 #else
 #   define XF_LOGU(tag, format, ...)  (void)(tag)
 #endif
 
-#if XF_LOG_LEVEL >= XF_LOG_ERROR
+#if XF_LOG_LEVEL >= XF_LOG_LVL_ERROR
 #   define XF_LOGE(tag, format, ...)  xf_log_level(XF_LOG_LVL_ERROR, tag, format, ##__VA_ARGS__)
 #else
 #   define XF_LOGE(tag, format, ...)  (void)(tag)
 #endif
 
-#if XF_LOG_LEVEL >= XF_LOG_WARN
+#if XF_LOG_LEVEL >= XF_LOG_LVL_WARN
 #   define XF_LOGW(tag, format, ...)  xf_log_level(XF_LOG_LVL_WARN, tag, format, ##__VA_ARGS__)
 #else
 #   define XF_LOGW(tag, format, ...)  (void)(tag)
 #endif
 
-#if XF_LOG_LEVEL >= XF_LOG_INFO
+#if XF_LOG_LEVEL >= XF_LOG_LVL_INFO
 #   define XF_LOGI(tag, format, ...)  xf_log_level(XF_LOG_LVL_INFO, tag, format, ##__VA_ARGS__)
 #else
 #   define XF_LOGI(tag, format, ...)  (void)(tag)
 #endif
 
-#if XF_LOG_LEVEL >= XF_LOG_DEBUG
+#if XF_LOG_LEVEL >= XF_LOG_LVL_DEBUG
 #   define XF_LOGD(tag, format, ...)  xf_log_level(XF_LOG_LVL_DEBUG, tag, format, ##__VA_ARGS__)
 #else
 #   define XF_LOGD(tag, format, ...)  (void)(tag)
 #endif
 
-#if XF_LOG_LEVEL >= XF_LOG_VERBOSE
+#if XF_LOG_LEVEL >= XF_LOG_LVL_VERBOSE
 #   define XF_LOGV(tag, format, ...)  xf_log_level(XF_LOG_LVL_VERBOSE, tag, format, ##__VA_ARGS__)
 #else
 #   define XF_LOGV(tag, format, ...)  (void)(tag)
